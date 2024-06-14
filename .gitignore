@@ -1,0 +1,25 @@
+# IDEs
+*.vscode
+*.idea
+
+# Cache
+.tmp
+.cache
+
+# C++ libraries
+*.so
+
+# Build System
+log
+cmake-build-*
+*/build
+*/install
+
+# Generated files
+lib/tracker_packet/protos/tracker_packet.*
+
+# Binaries
+third_party/NatNetSDK
+
+# config
+config.yaml

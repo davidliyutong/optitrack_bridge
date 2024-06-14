@@ -1,0 +1,2 @@
+add_subdirectory(example_natnet_client)
+add_subdirectory(example_grpc)

@@ -1,0 +1,118 @@
+## Developer's Guide
+
+## Build Instructions
+
+### Normal Build
+
+Clone the repository and run `git submodule update --init --recursive` to update submodules.
+
+First run the `scripts/install_sdk.[bash|ps1]` to populate `third_party/NatNetSDK` with the SDK source code.
+
+```shell
+bash scripts/install_sdk.bash
+```
+
+or
+
+```shell
+powershell scripts/install_sdk.ps1
+```
+
+> The `envfile|envfile.ps1` script sets the version for grpc and NatNetSDK. The default version is `v1.64.0` for grpc and `4.1.1` for NatNetSDK.
+
+Next, build gRPC library with the `scripts/install_grpc.[bash|ps1]`
+
+
+```shell
+bash scripts/install_grpc.bash
+```
+
+> You may need to install the following dependencies 
+> - Linux: 
+>   ```
+>   sudo apt install -y build-essential autoconf libtool pkg-config cmake 
+>   ```
+> - MacOS: 
+>   ```
+>   brew install autoconf automake libtool pkg-config cmake
+>   ```
+
+or
+
+```shell
+powershell scripts/install_grpc.ps1
+```
+
+> You will need `Visual Studio 2019` or later, with **CORRECT** Windows SDK installed.
+> 
+> `nasm` is need and can be installed with [Chocolatey](https://chocolatey.org/install): `choco install nasm`
+
+This may take a while depending on your internet connection and hardware.
+
+After building the dependencies, you can build the project with the following commands:
+
+```shell
+mkdir build
+cd build
+cmake ..
+cmake --build . --target optitrack_bridge
+cmake --build . --target copy_dll
+```
+
+If the build is successful, you can copy the `build/bin` to somewhere convenient. Then run the `optitrack_bridge` executable.
+
+
+```powershell
+optitrack_bridge --config <path_to_config_file> --port <port_number>
+```
+
+> The `--config` flag is optional. If not provided, the program will look for `config.yaml` in the current directory, `$HOME/.config/rfmocap/config.yaml` or `/etc/rfmocap/config.yaml`.
+> The `--port` flag is optional. If not provided, the program will use the default port `50051`.
+
+Here is an example of a `config.yaml` file:
+
+```yaml
+motive:
+  server_address: "<your_motive_address>"
+```
+
+### ROS2 build
+
+The project can also be built with ROS2. First clone the project in a ROS2 workspace:
+
+```shell
+mkdir -p ros_ws/src && cd ros_ws/src
+git clone <...>
+cd optitrack_bridge && git submodule update --init --recursive && cd ..
+colcon build --symlink-install # --symlink-install is used to install libNatNet.so
+```
+
+> There is no need to install grpc since we are not launching the gRPC server.
+> The ros2 build instruction is only tested on Ubuntu 22.04 with ROS2 Iron.
+
+After build, create the yaml configuration file and run:
+
+```shell
+echo 'motive:
+  server_address: "<your_address>"'> config.yaml
+ros2 run optitrack_bridge optitrack_ros2_publisher --ros-args -p config_path:=$(pwd)/config.yaml
+```
+
+## Using the Optitrack Bridge
+
+The Optitrack Bridge is a gRPC server that streams Optitrack data to clients. The protocol buffer definition can be found in [lib/tracker_packet/manifests/tracker_packet.proto](./lib/tracker_packet/manifests/tracker_packet.proto).
+
+You can build the example client in the `example` directory with the following commands:
+
+```shell
+cd build
+cmake --build . --target example_grcp_client
+```
+
+Then run the `example_grpc_client` executable.
+
+```shell
+example_grpc_client
+```
+
+> The example will Dial localhost:50051, make sure the client and the server is on the same host.

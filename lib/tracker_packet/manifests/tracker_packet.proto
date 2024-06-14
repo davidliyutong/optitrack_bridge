@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package tracker;
+
+message Position {
+  float x = 1;
+  float y = 2;
+  float z = 3;
+}
+
+message Quaternion {
+  float w = 1;
+  float x = 2;
+  float y = 3;
+  float z = 4;
+}
+
+message TrackerPacketResponseRaw {
+  string id = 1;                // object id
+  Position position = 2;        // position
+  Quaternion rotation = 3;      // rotation
+}
+
+message TrackerPacketArrayResponse {
+    map<string, TrackerPacketResponseRaw> data = 1;
+    uint64 sys_ticks = 2;
+    int64 seq = 3;
+}
+
+message TrackerPacketArrayStreamResponse {
+    repeated TrackerPacketArrayResponse packets = 1;
+    bool valid = 2;
+}
+
+message TrackerPacketRequest {
+  repeated string rigid_body_ids = 1;
+}
+
+service TrackerService {
+  rpc GetPacketArrayStream(TrackerPacketRequest) returns (stream TrackerPacketArrayStreamResponse) {}
+}
