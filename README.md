@@ -85,9 +85,26 @@ The project can also be built with ROS2. First clone the project in a ROS2 works
 ```shell
 mkdir -p ros_ws/src && cd ros_ws/src
 git clone https://github.com/davidliyutong/optitrack_bridge
+```
+
+Then update the submodules and install NatNetSDK with the following commands:
+
+```shell
+# ros_ws/src
 cd optitrack_bridge && git submodule update --init --recursive
 bash ./scripts/install_sdk.bash ## download the sdk pre-built binaries
-cd ../..
+```
+
+Now, choose the right `package.xml`. Since we are using ROS2, we need to use the `package.xml` in the `manifests/package.xml` directory. 
+
+```shell
+ln -s manifests/package.xml/ros2.xml package.xml
+```
+
+Then build the project with the following commands:
+
+```shell
+cd ros_ws/
 colcon build --symlink-install # --symlink-install is used to install libNatNet.so
 ```
 

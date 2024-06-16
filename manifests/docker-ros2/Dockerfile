@@ -8,9 +8,9 @@ RUN mkdir src && \
     cd src && \
     git clone --depth=1 https://github.com/davidliyutong/optitrack_bridge && \
     cd optitrack_bridge && \
-    git submodule update --init --recursive --depth=1  \
+    git submodule update --init --depth=1 third_party/yaml-cpp
 
-RUN bash ./scripts/install_sdk.bash
+RUN cd src/optitrack_bridge && bash ./scripts/install_sdk.bash && ln -s manifests/package.xml/ros2.xml package.xml
 
 RUN colcon build --symlink-install
 
