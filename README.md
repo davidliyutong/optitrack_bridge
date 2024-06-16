@@ -78,6 +78,10 @@ motive:
   server_address: "<your_motive_address>"
 ```
 
+### ROS1 build
+
+NOT IMPLEMENTED YET
+
 ### ROS2 build
 
 The project can also be built with ROS2. First clone the project in a ROS2 workspace:
@@ -143,7 +147,11 @@ example_grpc_client
 
 ### Working with ROS1
 
+NOT IMPLEMENTED YET
+
 #### Docker Run
+
+NOT IMPLEMENTED YET
 
 Run the docker container with the following command:
 
@@ -175,3 +183,10 @@ Run the docker container with the following command:
 ```shell
 dockers run -it --rm --net=host optitrack_bridge:ros2-latest
 ```
+
+## TODO
+
+- [ ] Implement ROS1 node
+- [ ] Implement Dockerfile for ROS1
+- [ ] Implement Dockerfile for Linux
+- [ ] Test on Linux
