@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 project(optitrack_bridge CXX)
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Set the output directory for the build executables
@@ -52,7 +52,8 @@ if (DEFINED ENV{ROS_DISTRO})
     elseif ($ENV{ROS_VERSION} STREQUAL "1")
         message(STATUS "Building for ROS 1")
         ## Compile as C++11, supported in ROS Kinetic and newer
-        add_compile_options(-std=c++11)
+        ## Compile as C++14, as the grpc library requires it
+        add_compile_options(-std=c++14)
 
         ## Find catkin macros and libraries
         ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
