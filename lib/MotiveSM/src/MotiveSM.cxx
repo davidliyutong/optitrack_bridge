@@ -177,7 +177,7 @@ bool MotiveStateMachine::handleEvent(const MotiveEventEnum &event) {
 void MotiveStateMachine::Loop() {
     std::lock_guard<std::mutex> lock(mutex);
     // log current state
-    LOGD(TAG, "Current state: %s, buffer.counter: %ld, client connection: %d", currentState->getName().c_str(), (int64_t)ringBuffer->GetCounter(), !IsTimeout());
+    LOGD(TAG, "Current state: %s, buffer.counter: %lld, client connection: %d", currentState->getName().c_str(), (int64_t)ringBuffer->GetCounter(), !IsTimeout());
 
     // handle all events
     if (currentState->getType() == MotiveStateEnum::UNINITIALIZED) {

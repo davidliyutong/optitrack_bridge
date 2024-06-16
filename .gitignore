@@ -20,6 +20,7 @@ lib/tracker_packet/protos/tracker_packet.*
 
 # Binaries
 third_party/NatNetSDK
+third_party/grpc/third_party/*
 
 # config
 config.yaml

@@ -1,4 +1,6 @@
-## Developer's Guide
+# OptiTrack Bridge
+
+This is a tool to bridge optitrack NatNetSDK to a gRPC server / a ROS2 topic publisher.
 
 ## Build Instructions
 
@@ -82,23 +84,28 @@ The project can also be built with ROS2. First clone the project in a ROS2 works
 
 ```shell
 mkdir -p ros_ws/src && cd ros_ws/src
-git clone <...>
-cd optitrack_bridge && git submodule update --init --recursive && cd ..
+git clone https://github.com/davidliyutong/optitrack_bridge
+cd optitrack_bridge && git submodule update --init --recursive
+bash ./scripts/install_sdk.bash ## download the sdk pre-built binaries
+cd ../..
 colcon build --symlink-install # --symlink-install is used to install libNatNet.so
 ```
 
 > There is no need to install grpc since we are not launching the gRPC server.
 > The ros2 build instruction is only tested on Ubuntu 22.04 with ROS2 Iron.
 
-After build, create the yaml configuration file and run:
+
+#### Docker Build
+
+You can also build the project with Docker. First, build the docker image with the following command:
 
 ```shell
-echo 'motive:
-  server_address: "<your_address>"'> config.yaml
-ros2 run optitrack_bridge optitrack_ros2_publisher --ros-args -p config_path:=$(pwd)/config.yaml
+docker build -t optitrack_bridge:ros2-latest -f manifests/docker-ros2/Dockerfile .
 ```
 
 ## Using the Optitrack Bridge
+
+### Normal Usage
 
 The Optitrack Bridge is a gRPC server that streams Optitrack data to clients. The protocol buffer definition can be found in [lib/tracker_packet/manifests/tracker_packet.proto](./lib/tracker_packet/manifests/tracker_packet.proto).
 
@@ -116,3 +123,38 @@ example_grpc_client
 ```
 
 > The example will Dial localhost:50051, make sure the client and the server is on the same host.
+
+### Working with ROS1
+
+#### Docker Run
+
+Run the docker container with the following command:
+
+```shell
+dockers run -it --rm --net=host optitrack_bridge:ros1-latest
+```
+
+### Working with ROS2
+
+After build, create the yaml configuration file:
+
+```shell
+cd ros_ws
+echo 'motive:
+  server_address: "<your_address>"'> config.yaml
+```
+
+Then run the following commands:
+
+```shell
+source install/setup.bash
+ros2 run optitrack_bridge optitrack_ros2_publisher --ros-args -p config_path:=$(pwd)/config.yaml
+```
+
+#### Docker Run
+
+Run the docker container with the following command:
+
+```shell
+dockers run -it --rm --net=host optitrack_bridge:ros2-latest
+```

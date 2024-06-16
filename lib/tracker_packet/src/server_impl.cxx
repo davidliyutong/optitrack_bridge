@@ -54,7 +54,9 @@ Status TrackerServiceImpl::GetPacketArrayStream(ServerContext *context, const Tr
         for (auto idx = last_rd_cnt + 1; idx < curr_rd_cnt; idx++) {
             response->set_valid(true);
 
-            auto [data_ptr, curr_idx, err] = buffer->Peek((int64_t) idx);
+            RingBufferErr err;
+            std::unique_ptr<sFrameOfMocapData> data_ptr;
+            std::tie(data_ptr, std::ignore, err) = buffer->Peek((int64_t) idx);
             if (err != RingBufferErr::RingBufferErr_OK) {
                 response->set_valid(false);
                 break;

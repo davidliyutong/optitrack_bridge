@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 project(optitrack_bridge CXX)
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Set the output directory for the build executables
@@ -25,29 +25,37 @@ include_directories(lib/ring_buf/include)
 # Add the MotiveSM library
 add_subdirectory(lib/MotiveSM)
 
-if(DEFINED ENV{ROS_DISTRO} AND DEFINED ENV{ROS_VERSION})
-    # find dependencies
-    find_package(ament_cmake REQUIRED)
+if (DEFINED ENV{ROS_DISTRO})
+    if (ENV{ROS_VERSION} STREQUAL "2")
+        message(STATUS "Building for ROS 2")
+        # find dependencies
+        find_package(ament_cmake REQUIRED)
 
-    # uncomment the following section in order to fill in
-    # further dependencies manually.
-    find_package(rclcpp REQUIRED)
-    find_package(std_msgs REQUIRED)
-    find_package(geometry_msgs REQUIRED)
+        # uncomment the following section in order to fill in
+        # further dependencies manually.
+        find_package(rclcpp REQUIRED)
+        find_package(std_msgs REQUIRED)
+        find_package(geometry_msgs REQUIRED)
 
-    add_executable(optitrack_ros2_publisher src/main_ros2.cxx)
-    target_link_libraries(optitrack_ros2_publisher MotiveSM)
-    ament_target_dependencies(optitrack_ros2_publisher rclcpp std_msgs geometry_msgs)
-    install(TARGETS
-        optitrack_ros2_publisher
-        DESTINATION lib/${PROJECT_NAME})
+        add_executable(optitrack_ros2_publisher src/main_ros2.cxx)
+        target_link_libraries(optitrack_ros2_publisher MotiveSM)
+        ament_target_dependencies(optitrack_ros2_publisher rclcpp std_msgs geometry_msgs)
+        install(TARGETS
+            optitrack_ros2_publisher
+            DESTINATION lib/${PROJECT_NAME})
 
-    install(
-        FILES
-        ${NATNET_LIB_PATH}
-        DESTINATION lib)
-    ament_package()
-else()
+        install(
+            FILES
+            ${NATNET_LIB_PATH}
+            DESTINATION lib)
+        ament_package()
+    elseif (ENV{ROS_VERSION} STREQUAL "1")
+        message(FATAL_ERROR "Building for ROS 1")
+    else ()
+        message(FATAL_ERROR "ROS_VERSION must be set to 1 or 2")
+    endif ()
+
+else ()
     # Add the search path
     include(cmake/grpc.cmake)
     # Build the protobuf files and generate tp_grpc_proto library
@@ -58,11 +66,10 @@ else()
 
     # Add the test directory to the project
     add_subdirectory(examples)
-endif()
+endif ()
 
-if (WIN32)
-    add_custom_target(
-        copy_dll ALL
-        DEPENDS ${PROJECT_DLL_DEPS}
-    )
-endif()
+
+add_custom_target(
+    copy_dll ALL
+    DEPENDS ${PROJECT_DLL_DEPS}
+)

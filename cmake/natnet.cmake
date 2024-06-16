@@ -16,6 +16,12 @@ elseif (UNIX AND NOT APPLE)
     set(NATNET_LIB_PATH ${CMAKE_CURRENT_SOURCE_DIR}/third_party/NatNetSDK/lib/libNatNet.so)
     find_library(NATNET_LIB NAMES libNatNet.so PATHS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/NatNetSDK/lib)
     link_directories(${CMAKE_CURRENT_SOURCE_DIR}/third_party/NatNetSDK/lib)
+    add_custom_command(
+        OUTPUT ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/libNatNet.so
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${NATNET_LIB_PATH}
+        ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/libNatNet.so
+    )
 elseif (APPLE)
     # display error message and exit
     message(FATAL_ERROR "Apple is not supported")

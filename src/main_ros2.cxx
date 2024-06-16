@@ -99,7 +99,9 @@ private:
         }
 
         for (auto idx = last_rd_cnt_ + 1; idx < curr_rd_cnt; idx++) {
-            auto [data_ptr, curr_idx, err] = sm_.GetBuffer()->Peek((int64_t)idx);
+            std::unique_ptr<sFrameOfMocapData> data_ptr;
+            RingBufferErr err;
+            std::tie(data_ptr, std::ignore, err) = sm_.GetBuffer()->Peek((int64_t)idx);
             for (auto rb_idx = 0; rb_idx < data_ptr->nRigidBodies; rb_idx++) {
                 auto rb_data = data_ptr->RigidBodies[rb_idx];
                 auto rb_name = cache_data_description_.find(rb_data.ID);

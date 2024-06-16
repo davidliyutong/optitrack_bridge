@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 source envfile
 
 mkdir -p .tmp
@@ -15,5 +17,7 @@ if [ -f ".tmp/NatNet_SDK_${DEV_NATNET_VERSION}_ubuntu.tar" ]; then
 else
     curl "https://s3.amazonaws.com/naturalpoint/software/NatNetSDKLinux/ubuntu/NatNet_SDK_${DEV_NATNET_VERSION}_ubuntu.tar" -o ".tmp/NatNet_SDK_${DEV_NATNET_VERSION}_ubuntu.tar"
 fi
+
+mkdir -p ./third_party/NatNetSDK
+
 tar -xf ".tmp/NatNet_SDK_${DEV_NATNET_VERSION}_ubuntu.tar" -C ./third_party/NatNetSDK
-sudo cp -v ./third_party/NatNetSDK/lib/libNatNet.so /usr/lib/
