@@ -80,7 +80,38 @@ motive:
 
 ### ROS1 build
 
-NOT IMPLEMENTED YET
+This project can be built with ROS1. First clone the project in a ROS1 workspace:
+
+```shell
+mkdir -p catkin_ws/src && cd catkin_ws/src
+git clone https://github.com/davidliyutong/optitrack_bridge
+```
+
+Then update the submodules and install NatNetSDK with the following commands:
+
+```shell
+# catkin_ws/src
+cd optitrack_bridge && git submodule update --init --recursive --depth=1
+bash ./scripts/install_sdk.bash ## download the sdk pre-built binaries
+```
+
+Now, choose the right `package.xml`. Since we are using ROS1, we need to use the `ros1.xml` in the `manifests/package.xml` directory. 
+
+```shell
+ln -s manifests/package.xml/ros1.xml package.xml
+```
+
+Then build the project with the following commands:
+
+```shell
+cd catkin_ws/
+# catkin_ws/
+catkin_make
+```
+
+> There is no need to install grpc since we are not launching the gRPC server.
+> The ros2 build instruction is only tested on Ubuntu 22.04 with ROS2 Iron.
+
 
 ### ROS2 build
 
@@ -95,11 +126,11 @@ Then update the submodules and install NatNetSDK with the following commands:
 
 ```shell
 # ros_ws/src
-cd optitrack_bridge && git submodule update --init --recursive
+cd optitrack_bridge && git submodule update --init --recursive --depth=1
 bash ./scripts/install_sdk.bash ## download the sdk pre-built binaries
 ```
 
-Now, choose the right `package.xml`. Since we are using ROS2, we need to use the `package.xml` in the `manifests/package.xml` directory. 
+Now, choose the right `package.xml`. Since we are using ROS2, we need to use the `ros2.xml` in the `manifests/package.xml` directory. 
 
 ```shell
 ln -s manifests/package.xml/ros2.xml package.xml
@@ -109,6 +140,7 @@ Then build the project with the following commands:
 
 ```shell
 cd ros_ws/
+# ros_ws/
 colcon build --symlink-install # --symlink-install is used to install libNatNet.so
 ```
 
@@ -147,11 +179,23 @@ example_grpc_client
 
 ### Working with ROS1
 
-NOT IMPLEMENTED YET
+After build, create the yaml configuration file:
+
+```shell
+cd catkin_ws
+echo 'motive:
+  server_address: "<your_address>"'> config.yaml
+```
+
+Open another ROS terminal and start `roscore`. Then run the following commands:
+
+```shell
+# catkin_ws/
+source devel/setup.bash
+rosrun optitrack_bridge node _config_path:=$(pwd)/config.yaml
+```
 
 #### Docker Run
-
-NOT IMPLEMENTED YET
 
 Run the docker container with the following command:
 
@@ -186,7 +230,6 @@ dockers run -it --rm --net=host optitrack_bridge:ros2-latest
 
 ## TODO
 
-- [ ] Implement ROS1 node
-- [ ] Implement Dockerfile for ROS1
-- [ ] Implement Dockerfile for Linux
+- [ ] Test on ROS1
+- [ ] Test on ROS2
 - [ ] Test on Linux

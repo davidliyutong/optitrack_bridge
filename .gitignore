@@ -24,3 +24,4 @@ third_party/grpc/third_party/*
 
 # config
 config.yaml
+package.xml
