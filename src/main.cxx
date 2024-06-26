@@ -12,7 +12,7 @@
 
 #include "debug.h"
 #include "ring_buf.hpp"
-#include "../lib/tracker_packet/include/server_impl.h"
+#include "server_impl.h"
 
 ABSL_FLAG(std::string, config, "", "Path to the config file");
 ABSL_FLAG(uint16_t, grpc_port, 50051, "gRPC port to listen on");

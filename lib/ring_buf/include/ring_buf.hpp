@@ -21,6 +21,7 @@ public:
     ~RingBuffer() = default;
 
     RingBufferErr Reset() {
+        // head is the next position to write
         std::lock_guard<std::mutex> lock(mutex);
         counter = 1;
         head = 1;
@@ -28,6 +29,7 @@ public:
     }
 
     RingBufferErr Push(T &item) {
+        // head is the next position to write
         std::lock_guard<std::mutex> lock(mutex);
         buf[head] = item;
         head = (head + 1) % size;
@@ -36,6 +38,7 @@ public:
     }
 
     std::tuple<std::unique_ptr<T>, int64_t, RingBufferErr> Peek(int64_t index) {
+        // index < 0: peek the last item
         if (index >= counter) return std::make_tuple(nullptr, -1, RingBufferErr_FAIL);
         if (index < 0 || index <= (counter - size)) index = counter - 1;
         int64_t place = index % size;

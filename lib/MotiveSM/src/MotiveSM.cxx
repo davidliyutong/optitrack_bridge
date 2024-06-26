@@ -5,11 +5,11 @@
 #include <thread>
 #include <typeinfo>
 
-#include "../include/MotiveSM.h"
+#include "MotiveSM.h"
 #include "debug.h"
 #include "NatNetCAPI.h"
 #include "NatNetClient.h"
-#include "../include/MotiveUtils.h"
+#include "MotiveUtils.h"
 
 static const char TAG[] = "MotiveSM";
 
@@ -81,9 +81,6 @@ bool MotiveDisconnectedState::handleEvent(MotiveStateMachine &sm, const MotiveEv
 bool MotiveConnectedState::handleEvent(MotiveStateMachine &sm, const MotiveEventEnum &event) {
     if (event == MotiveEventEnum::DISCONNECT) {
         auto client = sm.GetClient();
-//        void *response = nullptr;
-//        int nBytes = 0;
-//        Client->SendMessageAndWait("Disconnect", &response, &nBytes);
         client->Disconnect();
         MotiveUtils::ResetDataDescriptions();
         sm.SetState(std::make_shared<MotiveDisconnectedState>());
@@ -153,13 +150,6 @@ std::shared_ptr<RingBuffer<sFrameOfMocapData>> MotiveStateMachine::GetBuffer() c
     return ringBuffer;
 }
 
-//size_t MotiveStateMachine::GetLastUpdatedCounter() const {
-//    return lastUpdatedCounter;
-//}
-//
-//void MotiveStateMachine::SetLastUpdatedCounter(size_t value) {
-//    lastUpdatedCounter = value;
-//};
 
 bool MotiveStateMachine::IsTimeout() const {
     return !timeout;

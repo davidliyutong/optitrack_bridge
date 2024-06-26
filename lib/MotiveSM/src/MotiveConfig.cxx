@@ -12,11 +12,24 @@
 #include <pwd.h>
 #endif
 
-#include "../include/MotiveConfig.h"
+#include "MotiveConfig.h"
 #include "NatNetTypes.h"
 
 static const char *TAG = "MotiveConfig";
 
+///
+/// @brief Reads the configuration from a specified YAML file.
+///
+/// This function attempts to load the configuration settings from a YAML file specified by
+/// the filename parameter. It ensures that the required "motive" section and the
+/// "server_address" field are present. If these requirements are not met, the function
+/// logs appropriate error messages and sets the valid flag to false. The function also
+/// attempts to read the optional "multicast_address" field, defaulting to
+/// NATNET_DEFAULT_MULTICAST_ADDRESS if not found.
+///
+/// @param filename The path to the YAML configuration file.
+/// @return True if the configuration was successfully read and is valid, false otherwise.
+///
 bool MotiveConfig::ReadFromYaml(const std::string &filename) {
     YAML::Node config;
     try {
@@ -36,6 +49,7 @@ bool MotiveConfig::ReadFromYaml(const std::string &filename) {
         return valid;
     }
 
+    // The config must have a server_address
     try {
         MotiveServerAddress = config["motive"]["server_address"].as<std::string>();
     } catch (YAML::Exception &e) {
@@ -43,6 +57,7 @@ bool MotiveConfig::ReadFromYaml(const std::string &filename) {
         MotiveServerAddress = "";
     }
 
+    // if the config does not have a multicast_address, use the default
     try {
         MotiveMultiCastAddress = config["motive"]["multicast_address"].as<std::string>();
     } catch (YAML::Exception &e) {
@@ -53,7 +68,16 @@ bool MotiveConfig::ReadFromYaml(const std::string &filename) {
     return valid;
 }
 
-
+///
+/// @brief Determines the home directory of the current user.
+///
+/// This function retrieves the home directory of the current user. On Windows, it uses
+/// the SHGetFolderPathA function to get the path to the profile directory. On Unix-like
+/// systems, it uses getpwuid and getuid to get the path to the home directory.
+///
+/// @return A string representing the path to the home directory, or an empty string if
+///         the home directory could not be determined.
+///
 std::string getHomeDirectory() {
 #ifdef _WIN32
     char homeDir[MAX_PATH];
@@ -74,6 +98,16 @@ std::string getHomeDirectory() {
 #endif
 }
 
+///
+/// @brief Generates a list of paths to search for the YAML configuration file.
+///
+/// This function generates a vector of strings representing the paths to search for the
+/// YAML configuration file. The search paths include a system-wide configuration path,
+/// a user-specific configuration path within the home directory, and the current working
+/// directory.
+///
+/// @return A vector of strings representing the search paths for the configuration file.
+///
 std::vector<std::string> MotiveConfig::GetYamlSearchPath() {
     std::vector<std::string> search_path;
     search_path.emplace_back("/etc/rfmocap/config.yaml");

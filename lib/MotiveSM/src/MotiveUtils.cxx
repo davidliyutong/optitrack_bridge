@@ -3,10 +3,9 @@
 //
 #include <vector>
 
-#include "../include/MotiveUtils.h"
+#include "MotiveUtils.h"
 #include "NatNetClient.h"
 #include "debug.h"
-#include "../include/MotiveConfig.h"
 #include "ring_buf.hpp"
 
 static const char *TAG = "MotiveUtils";

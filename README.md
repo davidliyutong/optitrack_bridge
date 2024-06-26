@@ -156,6 +156,18 @@ You can also build the project with Docker. First, build the docker image with t
 docker build -t optitrack_bridge:ros2-latest -f manifests/docker-ros2/Dockerfile .
 ```
 
+### Generate Python Client
+
+You can generate a Python client with the following commands:
+
+```shell
+make task.pb.python_client
+```
+
+The client will be generated in `client/python`
+
+> You need to install `grpc-tools` via `pip install grpc-tools` to perform this operation
+
 ## Using the Optitrack Bridge
 
 ### Normal Usage
