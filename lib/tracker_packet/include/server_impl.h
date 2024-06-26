@@ -29,11 +29,14 @@ using grpc::Status;
 using tracker::TrackerService;
 using tracker::TrackerPacketRequest;
 using tracker::TrackerPacketArrayStreamResponse;
+using tracker::Empty;
+using tracker::TimeInfoResponse;
 
 class TrackerServiceImpl final : public TrackerService::Service {
 public:
     explicit TrackerServiceImpl(std::string listen_interface_in = "0.0.0.0"): listen_interface(std::move(listen_interface_in)) {}
     Status GetPacketArrayStream(ServerContext* context, const TrackerPacketRequest* request, grpc::ServerWriter<tracker::TrackerPacketArrayStreamResponse>* reactor) override;
+    Status GetTimeInfo(ServerContext* context, const Empty* request, TimeInfoResponse* response) override;
     bool Build();
     void RunForever(uint16_t port);
     void SetBuffer(std::shared_ptr<RingBuffer<sFrameOfMocapData>> buffer_in);

@@ -1,3 +1,3 @@
-add_executable(test_natnet_client example_natnet_client.cxx)
+add_executable(example_natnet_client example_natnet_client.cxx)
 
-target_link_libraries(test_natnet_client ${NATNET_LIB})
+target_link_libraries(example_natnet_client ${NATNET_LIB})

@@ -31,7 +31,7 @@ set(TRACKER_PACKET_INCLUDE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
 file(GLOB SERVER_SOURCES "src/server_*.cxx")
 add_library(tracker_packet_server ${SERVER_SOURCES})
-target_include_directories(tracker_packet_server PUBLIC ${TRACKER_PACKET_INCLUDE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/protos ${CMAKE_CURRENT_SOURCE_DIR}/../MotiveSM/include)
+target_include_directories(tracker_packet_server PUBLIC ${TRACKER_PACKET_INCLUDE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/protos ${CMAKE_CURRENT_SOURCE_DIR}/../MotiveSM/include, ${CMAKE_CURRENT_SOURCE_DIR}/../time_utils/include)
 target_link_libraries(tracker_packet_server
     tracker_packet_grpc_proto
 )

@@ -120,6 +120,7 @@ namespace MotiveUtils {
             printf("Client IP:%s\n", connectParams.localAddress);
             printf("Server IP:%s\n", connectParams.serverAddress);
             printf("Server Name:%s\n", serverDescription.szHostComputerName);
+            printf("Server Clock:%lld\n", serverDescription.HighResClockFrequency);
 
             // example : get mocap frame rate
             ret = Client->SendMessageAndWait("FrameRate", &pResult, &nBytes);

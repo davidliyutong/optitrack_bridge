@@ -14,7 +14,9 @@
 
 #include "server_impl.h"
 #include "debug.h"
-#include "MotiveUtils.h"
+#include "../../MotiveSM/include/MotiveUtils.h"
+#include "time_utils.hpp"
+
 
 static const char *TAG = "grpc_server";
 
@@ -51,6 +53,7 @@ Status TrackerServiceImpl::GetPacketArrayStream(ServerContext *context, const Tr
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
             continue;
         }
+
         for (auto idx = last_rd_cnt + 1; idx < curr_rd_cnt; idx++) {
             response->set_valid(true);
 
@@ -60,6 +63,9 @@ Status TrackerServiceImpl::GetPacketArrayStream(ServerContext *context, const Tr
             if (err != RingBufferErr::RingBufferErr_OK) {
                 response->set_valid(false);
                 break;
+            }
+            if (idx == last_rd_cnt + 1) {
+                LOGD(TAG, "Reading from %d", data_ptr->iFrame);
             }
 
             auto rb_msg = response->add_packets();
@@ -93,6 +99,13 @@ Status TrackerServiceImpl::GetPacketArrayStream(ServerContext *context, const Tr
         // send response
         reactor->Write(*response);
     }
+    return Status::OK;
+}
+
+Status TrackerServiceImpl::GetTimeInfo(::grpc::ServerContext* context, const ::tracker::Empty* request, ::tracker::TimeInfoResponse* response) {
+    response->set_frequency(TimeUtils::GetPerformanceFrequency());
+    response->set_pc(TimeUtils::GetPerformanceCounter());
+    response->set_unix(TimeUtils::GetUnixTimestampMicroseconds());
     return Status::OK;
 }
 

@@ -1,0 +1,1 @@
+add_executable(example_timestamp example_timestamp.cxx)

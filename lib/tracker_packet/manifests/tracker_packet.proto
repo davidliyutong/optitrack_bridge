@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package tracker;
 
+message Empty {}
+
 message Position {
   float x = 1;
   float y = 2;
@@ -36,6 +38,13 @@ message TrackerPacketRequest {
   repeated string rigid_body_ids = 1;
 }
 
+message TimeInfoResponse {
+    uint64 unix = 1;
+    uint64 pc = 2;
+    uint64 frequency = 3;
+}
+
 service TrackerService {
   rpc GetPacketArrayStream(TrackerPacketRequest) returns (stream TrackerPacketArrayStreamResponse) {}
+  rpc GetTimeInfo(Empty) returns (TimeInfoResponse) {}
 }

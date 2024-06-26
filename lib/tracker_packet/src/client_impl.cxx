@@ -13,9 +13,10 @@ using grpc::Status;
 using tracker::TrackerService;
 using tracker::TrackerPacketRequest;
 using tracker::TrackerPacketArrayStreamResponse;
+using tracker::Empty;
+using tracker::TimeInfoResponse;
 
-
-void TrackerClient::GetPacketArrayStream(TrackerClientCallback_t callback, void * callback_context) {
+void TrackerClient::GetPacketArrayStream(TrackerClientCallback_t callback, void *callback_context) {
     // Data we are sending to the server.
     TrackerPacketRequest request;
 
@@ -33,4 +34,23 @@ void TrackerClient::GetPacketArrayStream(TrackerClientCallback_t callback, void 
     while (response->Read(&reply)) {
         callback(&reply, callback_context);
     }
+}
+
+TimeInfo_t TrackerClient::GetTimeInfo() {
+    Empty request;
+
+    TimeInfoResponse response;
+    // Context for the client. It could be used to convey extra information to
+    // the server and/or tweak certain RPC behaviors.
+    ClientContext context;
+
+    // The actual RPC.
+    stub_->GetTimeInfo(&context, request, &response);
+
+    // read stream api
+    auto res = TimeInfo_t{};
+    res.unix = response.unix();
+    res.pc = response.pc();
+    res.frequency = response.frequency();
+    return res;
 }

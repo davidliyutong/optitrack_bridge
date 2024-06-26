@@ -23,6 +23,9 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/third_party/yaml-cpp/include)
 # Add the ring_buf header
 include_directories(lib/ring_buf/include)
 
+# Add the time_utils header
+include_directories(lib/time_utils/include)
+
 # Add the MotiveSM library
 add_subdirectory(lib/MotiveSM)
 

@@ -45,6 +45,8 @@ int main(int argc, char** argv) {
     // InsecureChannelCredentials()).
     TrackerClient cli(
         grpc::CreateChannel(target_str, grpc::InsecureChannelCredentials()));
+    TimeInfo_t t = cli.GetTimeInfo();
+    std::cout << "Unix: " << t.unix << ", PC: " << t.pc << ", Frequency: " << t.frequency << std::endl;
     cli.GetPacketArrayStream(Callback, nullptr);
 
     return 0;
