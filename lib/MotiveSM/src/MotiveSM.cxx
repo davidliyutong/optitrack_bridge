@@ -152,7 +152,7 @@ std::shared_ptr<RingBuffer<sFrameOfMocapData>> MotiveStateMachine::GetBuffer() c
 
 
 bool MotiveStateMachine::IsTimeout() const {
-    return !timeout;
+    return timeout;
 }
 
 void MotiveStateMachine::SetTimeoutState(bool state) {
@@ -188,7 +188,7 @@ void MotiveStateMachine::Loop() {
 
     if (currentState->getType() == MotiveStateEnum::CONNECTED) {
         handleEvent(MotiveEventEnum::HEARTBEAT);
-        if (!IsTimeout()) {
+        if (IsTimeout()) {
             handleEvent(MotiveEventEnum::DISCONNECT);
         }
         goto success;

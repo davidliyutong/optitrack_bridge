@@ -39,6 +39,7 @@
 #include "ros/ros.h"
 #include "std_msgs/String.h"
 #include "geometry_msgs/PoseStamped.h"
+#include <visualization_msgs/Marker.h>
 
 #include "MotiveSM.h"
 #include "MotiveUtils.h"
@@ -79,10 +80,11 @@ private:
 
 class OptitrackPublisher {
 public:
-    OptitrackPublisher(std::shared_ptr<MotiveConfig> config_in) : count_(0), last_rd_cnt_(0), sm_(config_in) {
+    OptitrackPublisher(std::shared_ptr<MotiveConfig> config_in) : count_(0), last_publish_cnt(0), last_visualization_cnt_(0), sm_(config_in) {
         ros::NodeHandle n;
         sm_timer_ = n.createTimer(ros::Duration(0.5), &OptitrackPublisher::sm_timer_callback, this);
         publish_timer_ = n.createTimer(ros::Duration(0.02), &OptitrackPublisher::publish_timer_callback, this);
+        visualization_timer_ = n.createTimer(ros::Duration(0.02), &OptitrackPublisher::visualization_timer_callback, this);
     }
 
 private:
@@ -107,7 +109,8 @@ private:
                 }
             }
 
-            std::lock_guard<std::mutex> lock(publisher_mod_mutex_);
+            std::lock_guard<std::mutex> lck1(publisher_mod_mutex_);
+            std::lock_guard<std::mutex> lck2(visualization_mod_mutex_);
             for (auto& rb : rb_to_remove) this->removeRigidBody(rb);
             for (auto& rb : rb_to_add) this->addRigidBody(rb);
             cache_data_description_ = curr_data_description_;
@@ -116,14 +119,14 @@ private:
     }
 
     void publish_timer_callback(const ros::TimerEvent&) {
-        std::lock_guard<std::mutex> lock(publisher_mod_mutex_);
+        std::lock_guard<std::mutex> lck1(publisher_mod_mutex_);
         auto buffer = sm_.GetBuffer();
         auto curr_rd_cnt = buffer->GetCounter();
-        if (curr_rd_cnt <= last_rd_cnt_ + 1) {
+        if (curr_rd_cnt <= last_publish_cnt + 1) {
             return;
         }
 
-        for (auto idx = last_rd_cnt_ + 1; idx < curr_rd_cnt; idx++) {
+        for (auto idx = last_publish_cnt + 1; idx < curr_rd_cnt; idx++) {
             std::unique_ptr<sFrameOfMocapData> data_ptr;
             RingBufferErr err;
             std::tie(data_ptr, std::ignore, err) = sm_.GetBuffer()->Peek((int64_t)idx);
@@ -132,35 +135,114 @@ private:
                 auto rb_name = cache_data_description_.find(rb_data.ID);
                 if (rb_name != cache_data_description_.end()) {
                     auto rb_name_str = (*rb_name).second;
+                    // Publish PoseStamped
                     auto pose = geometry_msgs::PoseStamped();
                     pose.header.stamp = ros::Time::now();
                     pose.header.frame_id = "optitrack";
+                    pose.pose.position.x = rb_data.x;
+                    pose.pose.position.y = rb_data.y;
+                    pose.pose.position.z = rb_data.z;
+                    pose.pose.orientation.x = rb_data.qx;
+                    pose.pose.orientation.y = rb_data.qy;
+                    pose.pose.orientation.z = rb_data.qz;
+                    pose.pose.orientation.w = rb_data.qw;
                     publisher_map_[rb_name_str].publish(pose);
                 }
             }
         }
+        last_publish_cnt = curr_rd_cnt;
     }
+
+    void visualization_timer_callback(const ros::TimerEvent&) {
+        std::lock_guard<std::mutex> lck2(visualization_mod_mutex_);
+        auto buffer = sm_.GetBuffer();
+        auto curr_rd_cnt = buffer->GetCounter();
+        if (curr_rd_cnt <= last_visualization_cnt_ + 1) {
+            return;
+        }
+
+        for (auto idx = last_visualization_cnt_ + 1; idx < curr_rd_cnt; idx++) {
+            std::unique_ptr<sFrameOfMocapData> data_ptr;
+            RingBufferErr err;
+            std::tie(data_ptr, std::ignore, err) = sm_.GetBuffer()->Peek((int64_t)idx);
+            for (auto rb_idx = 0; rb_idx < data_ptr->nRigidBodies; rb_idx++) {
+                auto rb_data = data_ptr->RigidBodies[rb_idx];
+                auto rb_name = cache_data_description_.find(rb_data.ID);
+                if (rb_name != cache_data_description_.end()) {
+                    auto rb_name_str = (*rb_name).second;
+                    // Publish Marker for rviz visualization.
+                    uint32_t shape = visualization_msgs::Marker::CUBE;
+                    visualization_msgs::Marker marker;
+                    marker.header.stamp = ros::Time::now();
+                    marker.header.frame_id = "global";
+
+                    // set the namespace and id for this marker.  this serves to create a unique id
+                    // any marker sent with the same namespace and id will overwrite the old one
+                    marker.ns = "optitrack_rigid_bodies";
+                    marker.id = rb_data.ID;
+
+                    // Set the marker type.  Initially this is CUBE, and cycles between that and SPHERE, ARROW, and CYLINDER
+                    marker.type = shape;
+
+                    // Set the marker action.  Options are ADD, DELETE, and new in ROS Indigo: 3 (DELETEALL)
+                    marker.action = visualization_msgs::Marker::ADD;
+
+                    marker.scale.x = 1.0; 
+                    marker.scale.y = 1.0;
+                    marker.scale.z = 1.0;
+
+                    marker.color.r = 1.0; 
+                    marker.color.g = 0.0;
+                    marker.color.b = 0.0;
+                    marker.color.a = 1.0;  
+
+
+                    marker.pose.position.x = rb_data.x;
+                    marker.pose.position.y = rb_data.y;
+                    marker.pose.position.z = rb_data.z;
+                    marker.pose.orientation.x = rb_data.qx;
+                    marker.pose.orientation.y = rb_data.qy;
+                    marker.pose.orientation.z = rb_data.qz;
+                    marker.pose.orientation.w = rb_data.qw;
+                    ROS_INFO("Publishing marker for rigid body %s, x:%.2f, y:%.2f, z:%.2f, qx:%.2f, qy:%.2f, qz:%.2f, qw: %.2f", rb_name_str.c_str(), rb_data.x, rb_data.y, rb_data.z, rb_data.qx, rb_data.qy, rb_data.qz, rb_data.qw);
+                    visualization_map_[rb_name_str].publish(marker);
+
+                    marker.lifetime = ros::Duration();
+                }
+            }
+        }
+        last_visualization_cnt_ = curr_rd_cnt;
+    }
+
+
 
     void addRigidBody(const std::string& rigid_body_id) {
         std::string curr_topic = std::string(TOPIC_NAME_BASE) + "/" + rigid_body_id;
+        std::string curr_viz_topic = std::string(TOPIC_NAME_BASE) + "/rviz/" + rigid_body_id;
         ros::NodeHandle n;
         publisher_map_[rigid_body_id] = n.advertise<geometry_msgs::PoseStamped>(curr_topic, 10);
+        visualization_map_[rigid_body_id] = n.advertise<visualization_msgs::Marker>(curr_viz_topic, 10);
     }
 
     void removeRigidBody(const std::string& rigid_body_id) {
         publisher_map_.erase(rigid_body_id);
+        visualization_map_.erase(rigid_body_id);
     }
 
     size_t count_;
-    int64_t last_rd_cnt_;
+    int64_t last_publish_cnt;
+    int64_t last_visualization_cnt_;
     MotiveStateMachine sm_;
 
     std::mutex publisher_mod_mutex_{};
+    std::mutex visualization_mod_mutex_{};
     std::map<std::string, ros::Publisher> publisher_map_{};
+    std::map<std::string, ros::Publisher> visualization_map_{};
     std::map<int, std::string> cache_data_description_{};
 
     ros::Timer sm_timer_;
     ros::Timer publish_timer_;
+    ros::Timer visualization_timer_;
 };
 
 int main(int argc, char* argv[]) {
