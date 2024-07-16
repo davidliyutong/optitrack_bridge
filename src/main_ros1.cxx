@@ -30,6 +30,7 @@
 //     }
 // }
 
+#include <thread>
 #include <chrono>
 #include <functional>
 #include <memory>
@@ -88,10 +89,13 @@ public:
         visualization_timer_ = n.createTimer(ros::Duration(0.02), &OptitrackPublisher::visualization_timer_callback, this);
     }
 
+    void loop_optitrack_sm(){
+        sm_.Loop();
+    }
+
 private:
     void sm_timer_callback(const ros::TimerEvent&) {
         LOGI(TAG, "sm_callback_called");
-        sm_.Loop();
         if (sm_.GetState()->getType() == MotiveStateEnum::CONNECTED) {
             auto curr_data_description_ = MotiveUtils::GetDataDescription();
 
@@ -245,8 +249,16 @@ int main(int argc, char* argv[]) {
     // Define node
     auto node = std::make_shared<OptitrackPublisher>(cfg);
 
-    // Use executor
-    ros::spin();
+    ros::AsyncSpinner spinner(0);
+    spinner.start();
+
+    while (true)
+    {
+        node->loop_optitrack_sm();
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+    }
+
+    ros::waitForShutdown();
 
     return 0;
 }

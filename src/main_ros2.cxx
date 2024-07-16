@@ -62,10 +62,13 @@ public:
         visualization_timer_ = this->create_wall_timer(20ms, std::bind(&OptitrackPublisher::visualization_timer_callback, this), visualization_callback_group_);
     }
 
+    void loop_optitrack_sm(){
+        sm_.Loop();
+    }
+
 private:
     void sm_timer_callback() {
         LOGI(TAG, "sm_callback_called");
-        sm_.Loop();
         if (sm_.GetState()->getType() == MotiveStateEnum::CONNECTED) {
             auto curr_data_description_ = MotiveUtils::GetDataDescription();
 
@@ -219,11 +222,27 @@ int main(int argc, char* argv[]) {
     // Define node
     auto node = std::make_shared<OptitrackPublisher>(cfg);
 
-    // Use executor
+	// Use rclcpp executors
     rclcpp::executors::MultiThreadedExecutor executor;
     executor.add_node(node);
-    executor.spin();
 
+    // Run executor.spin() in a separate thread
+    std::thread executor_thread([&executor]() {
+        executor.spin();
+    });
+
+    while (rclcpp::ok()) {
+        node->loop_optitrack_sm();
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+    }
+
+    // Shutdown ROS properly
+    executor.cancel();
+    if (executor_thread.joinable()) {
+        executor_thread.join();
+    }
+    
     rclcpp::shutdown();
+
     return 0;
 }

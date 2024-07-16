@@ -195,7 +195,7 @@ void MotiveStateMachine::Loop() {
     }
 
 success:
-    // std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
     return;
 fail:
     LOGI(TAG, "Previous Transaction Failed, wait for 5 seconds");
