@@ -30,6 +30,7 @@
 //     }
 // }
 
+#include <thread>
 #include <chrono>
 #include <functional>
 #include <memory>
@@ -88,10 +89,13 @@ public:
         visualization_timer_ = n.createTimer(ros::Duration(0.02), &OptitrackPublisher::visualization_timer_callback, this);
     }
 
+    void loop_optitrack_sm(){
+        sm_.Loop();
+    }
+
 private:
     void sm_timer_callback(const ros::TimerEvent&) {
         LOGI(TAG, "sm_callback_called");
-        sm_.Loop();
         if (sm_.GetState()->getType() == MotiveStateEnum::CONNECTED) {
             auto curr_data_description_ = MotiveUtils::GetDataDescription();
 
@@ -191,7 +195,7 @@ private:
                     transformStamped.transform.rotation.w = rb_data.qw;
 
                     // LOGD(TAG, "Pose for %s is x:%.2f, y:%.2f, z:%.2f, qx:%.2f, qy:%.2f, qz:%.2f, qw:%.2f", rb_name_str, rb_data.x, rb_data.y, rb_data.z, rb_data, qx, rb_data.qy, rb_data.qz, rb_data.qw);
-                    visualization_map_[rb_name_str].sendTransform(transformStamped);
+                    visualization_map_[rb_name_str]->sendTransform(transformStamped);
                 }
             }
         }
@@ -205,8 +209,7 @@ private:
         std::string curr_viz_topic = std::string(TOPIC_NAME_BASE) + "/rviz/" + rigid_body_id;
         ros::NodeHandle n;
         publisher_map_[rigid_body_id] = n.advertise<geometry_msgs::PoseStamped>(curr_topic, 10);
-        tf2_ros::TransformBroadcaster br;
-        visualization_map_[rigid_body_id] = br;
+        visualization_map_[rigid_body_id] = std::make_unique<tf2_ros::TransformBroadcaster>();
     }
 
     void removeRigidBody(const std::string& rigid_body_id) {
@@ -222,7 +225,7 @@ private:
     std::mutex publisher_mod_mutex_{};
     std::mutex visualization_mod_mutex_{};
     std::map<std::string, ros::Publisher> publisher_map_{};
-    std::map<std::string, tf2_ros::TransformBroadcaster> visualization_map_{};
+    std::map<std::string, std::unique_ptr<tf2_ros::TransformBroadcaster>> visualization_map_{};
     std::map<int, std::string> cache_data_description_{};
 
     ros::Timer sm_timer_;
@@ -246,8 +249,16 @@ int main(int argc, char* argv[]) {
     // Define node
     auto node = std::make_shared<OptitrackPublisher>(cfg);
 
-    // Use executor
-    ros::spin();
+    ros::AsyncSpinner spinner(0);
+    spinner.start();
+
+    while (true)
+    {
+        node->loop_optitrack_sm();
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+    }
+
+    ros::waitForShutdown();
 
     return 0;
 }
