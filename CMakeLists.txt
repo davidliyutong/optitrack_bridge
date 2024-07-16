@@ -40,11 +40,11 @@ if (DEFINED ENV{ROS_DISTRO})
         find_package(rclcpp REQUIRED)
         find_package(std_msgs REQUIRED)
         find_package(geometry_msgs REQUIRED)
-        find_package(visualization_msgs REQUIRED)
+        find_package(tf2_ros REQUIRED)
 
         add_executable(optitrack_ros2_publisher src/main_ros2.cxx)
         target_link_libraries(optitrack_ros2_publisher MotiveSM)
-        ament_target_dependencies(optitrack_ros2_publisher rclcpp std_msgs geometry_msgs visualization_msgs)
+        ament_target_dependencies(optitrack_ros2_publisher rclcpp std_msgs geometry_msgs tf2_ros)
         install(TARGETS
             optitrack_ros2_publisher
             DESTINATION lib/${PROJECT_NAME})
@@ -67,7 +67,7 @@ if (DEFINED ENV{ROS_DISTRO})
             geometry_msgs
             roscpp
             std_msgs
-            visualization_msgs
+            tf2_ros
         )
 
         ## System dependencies are found with CMake's conventions
@@ -162,7 +162,7 @@ if (DEFINED ENV{ROS_DISTRO})
         catkin_package(
               INCLUDE_DIRS include
               LIBRARIES optitrack_bridge
-              CATKIN_DEPENDS geometry_msgs roscpp std_msgs visualization_msgs
+              CATKIN_DEPENDS geometry_msgs roscpp std_msgs tf2_ros
               DEPENDS system_lib
         )
 

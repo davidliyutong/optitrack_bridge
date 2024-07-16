@@ -39,7 +39,8 @@
 #include "ros/ros.h"
 #include "std_msgs/String.h"
 #include "geometry_msgs/PoseStamped.h"
-#include <visualization_msgs/Marker.h>
+#include <tf2_ros/transform_broadcaster.h>
+#include <geometry_msgs/TransformStamped.h>
 
 #include "MotiveSM.h"
 #include "MotiveUtils.h"
@@ -138,7 +139,7 @@ private:
                     // Publish PoseStamped
                     auto pose = geometry_msgs::PoseStamped();
                     pose.header.stamp = ros::Time::now();
-                    pose.header.frame_id = "optitrack";
+                    pose.header.frame_id = "world";
                     pose.pose.position.x = rb_data.x;
                     pose.pose.position.y = rb_data.y;
                     pose.pose.position.z = rb_data.z;
@@ -146,11 +147,12 @@ private:
                     pose.pose.orientation.y = rb_data.qy;
                     pose.pose.orientation.z = rb_data.qz;
                     pose.pose.orientation.w = rb_data.qw;
+                    // LOGD(TAG, "Pose for %s is x:%.2f, y:%.2f, z:%.2f, qx:%.2f, qy:%.2f, qz:%.2f, qw:%.2f", rb_name_str.c_str(), rb_data.x, rb_data.y, rb_data.z, rb_data.qx, rb_data.qy, rb_data.qz, rb_data.qw);
                     publisher_map_[rb_name_str].publish(pose);
                 }
             }
         }
-        last_publish_cnt = curr_rd_cnt;
+        last_publish_cnt = curr_rd_cnt-1;
     }
 
     void visualization_timer_callback(const ros::TimerEvent&) {
@@ -170,48 +172,30 @@ private:
                 auto rb_name = cache_data_description_.find(rb_data.ID);
                 if (rb_name != cache_data_description_.end()) {
                     auto rb_name_str = (*rb_name).second;
-                    // Publish Marker for rviz visualization.
-                    uint32_t shape = visualization_msgs::Marker::CUBE;
-                    visualization_msgs::Marker marker;
-                    marker.header.stamp = ros::Time::now();
-                    marker.header.frame_id = "global";
+                    // Publish tf pose for rviz visualization.
+                    double fractional_part, integer_part;
+                    fractional_part = modf(data_ptr->fTimestamp, &integer_part);
 
-                    // set the namespace and id for this marker.  this serves to create a unique id
-                    // any marker sent with the same namespace and id will overwrite the old one
-                    marker.ns = "optitrack_rigid_bodies";
-                    marker.id = rb_data.ID;
+                    geometry_msgs::TransformStamped transformStamped;
+                    // transformStamped.header.stamp = ros::Time((int32_t)integer_part, (int32_t)(fractional_part * 1e9));
+                    transformStamped.header.stamp = ros::Time::now();
 
-                    // Set the marker type.  Initially this is CUBE, and cycles between that and SPHERE, ARROW, and CYLINDER
-                    marker.type = shape;
+                    transformStamped.header.frame_id = "world";
+                    transformStamped.child_frame_id = rb_name_str;
+                    transformStamped.transform.translation.x = rb_data.x;
+                    transformStamped.transform.translation.y = rb_data.y;
+                    transformStamped.transform.translation.z = rb_data.z;
+                    transformStamped.transform.rotation.x = rb_data.qx;
+                    transformStamped.transform.rotation.y = rb_data.qy;
+                    transformStamped.transform.rotation.z = rb_data.qz;
+                    transformStamped.transform.rotation.w = rb_data.qw;
 
-                    // Set the marker action.  Options are ADD, DELETE, and new in ROS Indigo: 3 (DELETEALL)
-                    marker.action = visualization_msgs::Marker::ADD;
-
-                    marker.scale.x = 1.0; 
-                    marker.scale.y = 1.0;
-                    marker.scale.z = 1.0;
-
-                    marker.color.r = 1.0; 
-                    marker.color.g = 0.0;
-                    marker.color.b = 0.0;
-                    marker.color.a = 1.0;  
-
-
-                    marker.pose.position.x = rb_data.x;
-                    marker.pose.position.y = rb_data.y;
-                    marker.pose.position.z = rb_data.z;
-                    marker.pose.orientation.x = rb_data.qx;
-                    marker.pose.orientation.y = rb_data.qy;
-                    marker.pose.orientation.z = rb_data.qz;
-                    marker.pose.orientation.w = rb_data.qw;
-                    ROS_INFO("Publishing marker for rigid body %s, x:%.2f, y:%.2f, z:%.2f, qx:%.2f, qy:%.2f, qz:%.2f, qw: %.2f", rb_name_str.c_str(), rb_data.x, rb_data.y, rb_data.z, rb_data.qx, rb_data.qy, rb_data.qz, rb_data.qw);
-                    visualization_map_[rb_name_str].publish(marker);
-
-                    marker.lifetime = ros::Duration();
+                    // LOGD(TAG, "Pose for %s is x:%.2f, y:%.2f, z:%.2f, qx:%.2f, qy:%.2f, qz:%.2f, qw:%.2f", rb_name_str, rb_data.x, rb_data.y, rb_data.z, rb_data, qx, rb_data.qy, rb_data.qz, rb_data.qw);
+                    visualization_map_[rb_name_str].sendTransform(transformStamped);
                 }
             }
         }
-        last_visualization_cnt_ = curr_rd_cnt;
+        last_visualization_cnt_ = curr_rd_cnt-1;
     }
 
 
@@ -221,7 +205,8 @@ private:
         std::string curr_viz_topic = std::string(TOPIC_NAME_BASE) + "/rviz/" + rigid_body_id;
         ros::NodeHandle n;
         publisher_map_[rigid_body_id] = n.advertise<geometry_msgs::PoseStamped>(curr_topic, 10);
-        visualization_map_[rigid_body_id] = n.advertise<visualization_msgs::Marker>(curr_viz_topic, 10);
+        tf2_ros::TransformBroadcaster br;
+        visualization_map_[rigid_body_id] = br;
     }
 
     void removeRigidBody(const std::string& rigid_body_id) {
@@ -233,11 +218,11 @@ private:
     int64_t last_publish_cnt;
     int64_t last_visualization_cnt_;
     MotiveStateMachine sm_;
-
+    
     std::mutex publisher_mod_mutex_{};
     std::mutex visualization_mod_mutex_{};
     std::map<std::string, ros::Publisher> publisher_map_{};
-    std::map<std::string, ros::Publisher> visualization_map_{};
+    std::map<std::string, tf2_ros::TransformBroadcaster> visualization_map_{};
     std::map<int, std::string> cache_data_description_{};
 
     ros::Timer sm_timer_;

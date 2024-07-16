@@ -120,7 +120,7 @@ namespace MotiveUtils {
             printf("Client IP:%s\n", connectParams.localAddress);
             printf("Server IP:%s\n", connectParams.serverAddress);
             printf("Server Name:%s\n", serverDescription.szHostComputerName);
-            printf("Server Clock:%lld\n", serverDescription.HighResClockFrequency);
+            printf("Server Clock:%lld\n", (long long int)serverDescription.HighResClockFrequency);
 
             // example : get mocap frame rate
             ret = Client->SendMessageAndWait("FrameRate", &pResult, &nBytes);
@@ -387,12 +387,16 @@ namespace MotiveUtils {
         if (iResult != ErrorCode_OK || g_pDataDefs == nullptr) {
             if (g_pDataDefs) {
                 try {
-                    NatNet_FreeDescriptions(g_pDataDefs);
-                } catch (...){
+                    // NatNet_FreeDescriptions(g_pDataDefs);
+                    // TODO: when iResult!=ErrorCode_OK and g_pDataDefs is partially corrupted, NatNet_FreeDescriptions(g_pDataDefs) may double free.
+                    // ! Set g_pDataDefs to nullptr first.
+                    g_pDataDefs = nullptr;
+                }
+                catch (...)
+                {
                     LOGE(TAG, "NatNet_FreeDescriptions Error");
                     g_pDataDefs = nullptr;
                 }
-
             }
             return false;
         } else {
