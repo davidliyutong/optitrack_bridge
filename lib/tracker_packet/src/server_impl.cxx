@@ -45,6 +45,11 @@ Status TrackerServiceImpl::GetPacketArrayStream(ServerContext *context, const Tr
     LOGI(TAG, "Received request: %s", request->DebugString().c_str());
     LOGI(TAG, "Setting %lld rigid body filters", rb_filters.size());
     auto last_rd_cnt = buffer->GetCounter() - 1;
+
+    auto ref_freq = TimeUtils::GetPerformanceFrequency();
+    auto ref_pc = TimeUtils::GetPerformanceCounter();
+    auto ref_unix = TimeUtils::GetUnixTimestampMicroseconds();
+
     while (!context->IsCancelled()) {
         response->clear_packets();
         response->set_valid(false);
@@ -70,6 +75,7 @@ Status TrackerServiceImpl::GetPacketArrayStream(ServerContext *context, const Tr
 
             auto rb_msg = response->add_packets();
             rb_msg->set_sys_ticks(data_ptr->CameraMidExposureTimestamp);
+            rb_msg->set_unix_us((data_ptr->CameraMidExposureTimestamp - ref_pc) * 1000000 / ref_freq + ref_unix);
             rb_msg->set_seq(data_ptr->iFrame);
 
             for (auto rb_idx = 0; rb_idx < data_ptr->nRigidBodies; rb_idx++) {
