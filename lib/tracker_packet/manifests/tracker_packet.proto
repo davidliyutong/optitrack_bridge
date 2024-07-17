@@ -26,7 +26,8 @@ message TrackerPacketResponseRaw {
 message TrackerPacketArrayResponse {
     map<string, TrackerPacketResponseRaw> data = 1;
     uint64 sys_ticks = 2;
-    int64 seq = 3;
+    uint64 unix_us = 3;
+    int64 seq = 4;
 }
 
 message TrackerPacketArrayStreamResponse {
