@@ -16,6 +16,7 @@
 #include "debug.h"
 #include "../../MotiveSM/include/MotiveUtils.h"
 #include "time_utils.hpp"
+#include "NatNetClient.h"
 
 
 static const char *TAG = "grpc_server";
@@ -28,15 +29,17 @@ using grpc::Status;
 using tracker::TrackerService;
 using tracker::TrackerPacketRequest;
 using tracker::TrackerPacketArrayStreamResponse;
+using tracker::RigidBodyDescriptionArray;
 
 // Logic and data behind the server's behavior.
-Status TrackerServiceImpl::GetPacketArrayStream(ServerContext *context, const TrackerPacketRequest *request, grpc::ServerWriter<tracker::TrackerPacketArrayStreamResponse> *reactor) {
+Status
+TrackerServiceImpl::GetPacketArrayStream(ServerContext *context, const TrackerPacketRequest *request, grpc::ServerWriter<tracker::TrackerPacketArrayStreamResponse> *reactor) {
     // Send stream data to client
-    std::unique_ptr<tracker::TrackerPacketArrayStreamResponse> response =std::make_unique<tracker::TrackerPacketArrayStreamResponse>() ;
+    std::unique_ptr<tracker::TrackerPacketArrayStreamResponse> response = std::make_unique<tracker::TrackerPacketArrayStreamResponse>();
     std::vector<int> rb_filters;
-    auto cacheDataDescription = MotiveUtils::GetDataDescription(); // ID->NameMapping
+    auto cachedAssetIDMapping = MotiveUtils::GetAssetIDMapping(); // ID->NameMapping
     if (!request->rigid_body_ids().empty()) {
-        for (auto &rb_id_pair : cacheDataDescription) {
+        for (auto &rb_id_pair: cachedAssetIDMapping) {
             if (std::find(request->rigid_body_ids().begin(), request->rigid_body_ids().end(), rb_id_pair.second) != request->rigid_body_ids().end()) {
                 rb_filters.push_back(rb_id_pair.first);
             }
@@ -80,7 +83,7 @@ Status TrackerServiceImpl::GetPacketArrayStream(ServerContext *context, const Tr
 
             for (auto rb_idx = 0; rb_idx < data_ptr->nRigidBodies; rb_idx++) {
                 auto rb_data = data_ptr->RigidBodies[rb_idx];
-                auto rb_name = cacheDataDescription[rb_data.ID];
+                auto rb_name = cachedAssetIDMapping[rb_data.ID];
                 if (rb_filters.empty() || std::find(rb_filters.begin(), rb_filters.end(), rb_data.ID) != rb_filters.end()) {
                     auto rb_raw = tracker::TrackerPacketResponseRaw();
                     rb_raw.set_id(rb_name);
@@ -91,7 +94,7 @@ Status TrackerServiceImpl::GetPacketArrayStream(ServerContext *context, const Tr
                     rb_raw_rot->set_y(rb_data.qy);
                     rb_raw_rot->set_z(rb_data.qz);
 
-                    auto rb_raw_pos =  rb_raw.mutable_position();
+                    auto rb_raw_pos = rb_raw.mutable_position();
                     rb_raw_pos->set_x(rb_data.x);
                     rb_raw_pos->set_y(rb_data.y);
                     rb_raw_pos->set_z(rb_data.z);
@@ -108,7 +111,36 @@ Status TrackerServiceImpl::GetPacketArrayStream(ServerContext *context, const Tr
     return Status::OK;
 }
 
-Status TrackerServiceImpl::GetTimeInfo(::grpc::ServerContext* context, const ::tracker::Empty* request, ::tracker::TimeInfoResponse* response) {
+Status TrackerServiceImpl::GetRigidBodyDescription(ServerContext *context, const TrackerPacketRequest *request, RigidBodyDescriptionArray *response) {
+    // Send rigid body description to client
+    auto cacheDataDescription = MotiveUtils::GetDataDescription(); // ID->NameMapping
+    for (auto idx = 0; idx < cacheDataDescription->nDataDescriptions; ++idx) {
+        auto desc = cacheDataDescription->arrDataDescriptions[idx];
+        if (desc.type == Descriptor_RigidBody) {
+            if (!request->rigid_body_ids().empty()) {
+                if (
+                    std::find(
+                        request->rigid_body_ids().begin(),
+                        request->rigid_body_ids().end(),
+                        std::string(desc.Data.RigidBodyDescription->szName)) == request->rigid_body_ids().end()) {
+                    continue;
+                }
+            }
+            auto resp_desc = response->add_data();
+            resp_desc->set_id(desc.Data.RigidBodyDescription->szName);
+            for (auto marker_idx = 0; marker_idx < desc.Data.RigidBodyDescription->nMarkers; ++marker_idx) {
+                auto marker = resp_desc->add_markers();
+                marker->set_x(desc.Data.RigidBodyDescription->MarkerPositions[marker_idx][0]);
+                marker->set_y(desc.Data.RigidBodyDescription->MarkerPositions[marker_idx][1]);
+                marker->set_z(desc.Data.RigidBodyDescription->MarkerPositions[marker_idx][2]);
+            }
+        }
+    }
+    return Status::OK;
+}
+
+
+Status TrackerServiceImpl::GetTimeInfo(ServerContext *context, const Empty *request, TimeInfoResponse *response) {
     response->set_frequency(TimeUtils::GetPerformanceFrequency());
     response->set_pc(TimeUtils::GetPerformanceCounter());
     response->set_unix(TimeUtils::GetUnixTimestampMicroseconds());

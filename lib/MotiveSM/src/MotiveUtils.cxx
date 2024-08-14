@@ -424,8 +424,13 @@ namespace MotiveUtils {
         return false;
     }
 
-    std::map<int, std::string> GetDataDescription() {
+    std::map<int, std::string> GetAssetIDMapping() {
         std::lock_guard<std::mutex> lock(g_DataDefMutex);
         return g_AssetIDtoAssetName;
+    }
+
+    std::shared_ptr<sDataDescriptions> GetDataDescription() {
+        std::lock_guard<std::mutex> lock(g_DataDefMutex);
+        return std::make_shared<sDataDescriptions>(*g_pDataDefs);
     }
 }

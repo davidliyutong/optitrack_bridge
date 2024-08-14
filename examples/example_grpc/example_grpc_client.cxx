@@ -47,6 +47,13 @@ int main(int argc, char** argv) {
         grpc::CreateChannel(target_str, grpc::InsecureChannelCredentials()));
     TimeInfo_t t = cli.GetTimeInfo();
     std::cout << "Unix: " << t.unix << ", PC: " << t.pc << ", Frequency: " << t.frequency << std::endl;
+    auto desc = cli.GetRigidBodyDescription();
+    for (const auto& x : desc) {
+        std::cout << "Rigid body: " << x.id << std::endl;
+        for (const auto& y : x.markers) {
+            std::cout << "Marker: " << y[0] << ", " << y[1] << ", " << y[2] << std::endl;
+        }
+    }
     cli.GetPacketArrayStream(Callback, nullptr);
 
     return 0;

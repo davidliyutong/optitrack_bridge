@@ -45,7 +45,17 @@ message TimeInfoResponse {
     uint64 frequency = 3;
 }
 
+message RigidBodyDescription {
+    string id = 1;
+    repeated Position markers = 3;
+}
+
+message RigidBodyDescriptionArray {
+    repeated RigidBodyDescription data = 1;
+}
+
 service TrackerService {
   rpc GetPacketArrayStream(TrackerPacketRequest) returns (stream TrackerPacketArrayStreamResponse) {}
+  rpc GetRigidBodyDescription(TrackerPacketRequest) returns (RigidBodyDescriptionArray) {}
   rpc GetTimeInfo(Empty) returns (TimeInfoResponse) {}
 }

@@ -20,7 +20,8 @@ namespace MotiveUtils {
     bool DataDescriptionIsValid();
     bool UpdateDataDescriptions(const std::shared_ptr<NatNetClient>& Client, bool printToConsole);
     bool ResetDataDescriptions();
-    std::map<int, std::string> GetDataDescription();
+    std::map<int, std::string> GetAssetIDMapping();
+    std::shared_ptr<sDataDescriptions> GetDataDescription();
 }
 
 #endif //OPTITRACK_BRIDGE_MOTIVEUTILS_H

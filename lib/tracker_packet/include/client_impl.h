@@ -24,6 +24,11 @@ typedef struct {
     uint64_t frequency;
 } TimeInfo_t;
 
+typedef struct {
+    std::string id;
+    std::vector<std::array<float, 3>> markers;
+} RigidBodyDescription_t;
+
 class TrackerClient {
 public:
     explicit TrackerClient(const std::shared_ptr<Channel> &channel)
@@ -33,6 +38,8 @@ public:
     // from the server.
     void GetPacketArrayStream(TrackerClientCallback_t callback, void * callback_context);
     TimeInfo_t GetTimeInfo();
+    std::vector<RigidBodyDescription_t> GetRigidBodyDescription();
+
 private:
     std::unique_ptr<TrackerService::Stub> stub_;
 };
