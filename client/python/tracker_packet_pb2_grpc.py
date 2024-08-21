@@ -19,6 +19,11 @@ class TrackerServiceStub(object):
                 request_serializer=tracker__packet__pb2.TrackerPacketRequest.SerializeToString,
                 response_deserializer=tracker__packet__pb2.TrackerPacketArrayStreamResponse.FromString,
                 )
+        self.GetRigidBodyDescription = channel.unary_unary(
+                '/tracker.TrackerService/GetRigidBodyDescription',
+                request_serializer=tracker__packet__pb2.TrackerPacketRequest.SerializeToString,
+                response_deserializer=tracker__packet__pb2.RigidBodyDescriptionArray.FromString,
+                )
         self.GetTimeInfo = channel.unary_unary(
                 '/tracker.TrackerService/GetTimeInfo',
                 request_serializer=tracker__packet__pb2.Empty.SerializeToString,
@@ -30,6 +35,12 @@ class TrackerServiceServicer(object):
     """Missing associated documentation comment in .proto file."""
 
     def GetPacketArrayStream(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetRigidBodyDescription(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -48,6 +59,11 @@ def add_TrackerServiceServicer_to_server(servicer, server):
                     servicer.GetPacketArrayStream,
                     request_deserializer=tracker__packet__pb2.TrackerPacketRequest.FromString,
                     response_serializer=tracker__packet__pb2.TrackerPacketArrayStreamResponse.SerializeToString,
+            ),
+            'GetRigidBodyDescription': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetRigidBodyDescription,
+                    request_deserializer=tracker__packet__pb2.TrackerPacketRequest.FromString,
+                    response_serializer=tracker__packet__pb2.RigidBodyDescriptionArray.SerializeToString,
             ),
             'GetTimeInfo': grpc.unary_unary_rpc_method_handler(
                     servicer.GetTimeInfo,
@@ -78,6 +94,23 @@ class TrackerService(object):
         return grpc.experimental.unary_stream(request, target, '/tracker.TrackerService/GetPacketArrayStream',
             tracker__packet__pb2.TrackerPacketRequest.SerializeToString,
             tracker__packet__pb2.TrackerPacketArrayStreamResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def GetRigidBodyDescription(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/tracker.TrackerService/GetRigidBodyDescription',
+            tracker__packet__pb2.TrackerPacketRequest.SerializeToString,
+            tracker__packet__pb2.RigidBodyDescriptionArray.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 

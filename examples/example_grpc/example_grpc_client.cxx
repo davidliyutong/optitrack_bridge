@@ -54,6 +54,9 @@ int main(int argc, char** argv) {
             std::cout << "Marker: " << y[0] << ", " << y[1] << ", " << y[2] << std::endl;
         }
     }
+    // sleep for 5 seconds
+    std::cout.flush();
+    std::this_thread::sleep_for(std::chrono::seconds(5));
     cli.GetPacketArrayStream(Callback, nullptr);
 
     return 0;
