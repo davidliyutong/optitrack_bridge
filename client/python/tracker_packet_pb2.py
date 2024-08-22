@@ -14,7 +14,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x14tracker_packet.proto\x12\x07tracker\"\x07\n\x05\x45mpty\"+\n\x08Position\x12\t\n\x01x\x18\x01 \x01(\x02\x12\t\n\x01y\x18\x02 \x01(\x02\x12\t\n\x01z\x18\x03 \x01(\x02\"8\n\nQuaternion\x12\t\n\x01w\x18\x01 \x01(\x02\x12\t\n\x01x\x18\x02 \x01(\x02\x12\t\n\x01y\x18\x03 \x01(\x02\x12\t\n\x01z\x18\x04 \x01(\x02\"r\n\x18TrackerPacketResponseRaw\x12\n\n\x02id\x18\x01 \x01(\t\x12#\n\x08position\x18\x02 \x01(\x0b\x32\x11.tracker.Position\x12%\n\x08rotation\x18\x03 \x01(\x0b\x32\x13.tracker.Quaternion\"\xda\x01\n\x1aTrackerPacketArrayResponse\x12;\n\x04\x64\x61ta\x18\x01 \x03(\x0b\x32-.tracker.TrackerPacketArrayResponse.DataEntry\x12\x11\n\tsys_ticks\x18\x02 \x01(\x04\x12\x0f\n\x07unix_us\x18\x03 \x01(\x04\x12\x0b\n\x03seq\x18\x04 \x01(\x03\x1aN\n\tDataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x30\n\x05value\x18\x02 \x01(\x0b\x32!.tracker.TrackerPacketResponseRaw:\x02\x38\x01\"g\n TrackerPacketArrayStreamResponse\x12\x34\n\x07packets\x18\x01 \x03(\x0b\x32#.tracker.TrackerPacketArrayResponse\x12\r\n\x05valid\x18\x02 \x01(\x08\".\n\x14TrackerPacketRequest\x12\x16\n\x0erigid_body_ids\x18\x01 \x03(\t\"?\n\x10TimeInfoResponse\x12\x0c\n\x04unix\x18\x01 \x01(\x04\x12\n\n\x02pc\x18\x02 \x01(\x04\x12\x11\n\tfrequency\x18\x03 \x01(\x04\x32\xb2\x01\n\x0eTrackerService\x12\x64\n\x14GetPacketArrayStream\x12\x1d.tracker.TrackerPacketRequest\x1a).tracker.TrackerPacketArrayStreamResponse\"\x00\x30\x01\x12:\n\x0bGetTimeInfo\x12\x0e.tracker.Empty\x1a\x19.tracker.TimeInfoResponse\"\x00\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x14tracker_packet.proto\x12\x07tracker\"\x07\n\x05\x45mpty\"+\n\x08Position\x12\t\n\x01x\x18\x01 \x01(\x02\x12\t\n\x01y\x18\x02 \x01(\x02\x12\t\n\x01z\x18\x03 \x01(\x02\"8\n\nQuaternion\x12\t\n\x01w\x18\x01 \x01(\x02\x12\t\n\x01x\x18\x02 \x01(\x02\x12\t\n\x01y\x18\x03 \x01(\x02\x12\t\n\x01z\x18\x04 \x01(\x02\"r\n\x18TrackerPacketResponseRaw\x12\n\n\x02id\x18\x01 \x01(\t\x12#\n\x08position\x18\x02 \x01(\x0b\x32\x11.tracker.Position\x12%\n\x08rotation\x18\x03 \x01(\x0b\x32\x13.tracker.Quaternion\"\xda\x01\n\x1aTrackerPacketArrayResponse\x12;\n\x04\x64\x61ta\x18\x01 \x03(\x0b\x32-.tracker.TrackerPacketArrayResponse.DataEntry\x12\x11\n\tsys_ticks\x18\x02 \x01(\x04\x12\x0f\n\x07unix_us\x18\x03 \x01(\x04\x12\x0b\n\x03seq\x18\x04 \x01(\x03\x1aN\n\tDataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x30\n\x05value\x18\x02 \x01(\x0b\x32!.tracker.TrackerPacketResponseRaw:\x02\x38\x01\"g\n TrackerPacketArrayStreamResponse\x12\x34\n\x07packets\x18\x01 \x03(\x0b\x32#.tracker.TrackerPacketArrayResponse\x12\r\n\x05valid\x18\x02 \x01(\x08\".\n\x14TrackerPacketRequest\x12\x16\n\x0erigid_body_ids\x18\x01 \x03(\t\"?\n\x10TimeInfoResponse\x12\x0c\n\x04unix\x18\x01 \x01(\x04\x12\n\n\x02pc\x18\x02 \x01(\x04\x12\x11\n\tfrequency\x18\x03 \x01(\x04\"F\n\x14RigidBodyDescription\x12\n\n\x02id\x18\x01 \x01(\t\x12\"\n\x07markers\x18\x03 \x03(\x0b\x32\x11.tracker.Position\"H\n\x19RigidBodyDescriptionArray\x12+\n\x04\x64\x61ta\x18\x01 \x03(\x0b\x32\x1d.tracker.RigidBodyDescription2\x92\x02\n\x0eTrackerService\x12\x64\n\x14GetPacketArrayStream\x12\x1d.tracker.TrackerPacketRequest\x1a).tracker.TrackerPacketArrayStreamResponse\"\x00\x30\x01\x12^\n\x17GetRigidBodyDescription\x12\x1d.tracker.TrackerPacketRequest\x1a\".tracker.RigidBodyDescriptionArray\"\x00\x12:\n\x0bGetTimeInfo\x12\x0e.tracker.Empty\x1a\x19.tracker.TimeInfoResponse\"\x00\x62\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -41,6 +41,10 @@ if _descriptor._USE_C_DESCRIPTORS == False:
   _globals['_TRACKERPACKETREQUEST']._serialized_end=633
   _globals['_TIMEINFORESPONSE']._serialized_start=635
   _globals['_TIMEINFORESPONSE']._serialized_end=698
-  _globals['_TRACKERSERVICE']._serialized_start=701
-  _globals['_TRACKERSERVICE']._serialized_end=879
+  _globals['_RIGIDBODYDESCRIPTION']._serialized_start=700
+  _globals['_RIGIDBODYDESCRIPTION']._serialized_end=770
+  _globals['_RIGIDBODYDESCRIPTIONARRAY']._serialized_start=772
+  _globals['_RIGIDBODYDESCRIPTIONARRAY']._serialized_end=844
+  _globals['_TRACKERSERVICE']._serialized_start=847
+  _globals['_TRACKERSERVICE']._serialized_end=1121
 # @@protoc_insertion_point(module_scope)
